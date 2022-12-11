@@ -26,7 +26,7 @@ const project = new typescript.TypeScriptProject({
   defaultReleaseBranch: "main",
   packageManager: javascript.NodePackageManager.NPM,
   projenrcTs: true,
-  minNodeVersion: "14.12.0",
+  minNodeVersion: "16.15.0",
   jest: false,
   testdir: "src",
   prettier: true,
