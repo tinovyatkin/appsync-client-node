@@ -87,7 +87,7 @@
       "description": "Synthesize project files",
       "steps": [
         {
-          "exec": "ts-node --project tsconfig.dev.json .projenrc.ts"
+          "exec": "ts-node --project tsconfig.dev.json --esm --preferTsExts --experimentalSpecifierResolution node .projenrc.ts"
         }
       ]
     },
@@ -108,7 +108,7 @@
       "description": "Runs eslint against the codebase",
       "steps": [
         {
-          "exec": "eslint --ext .ts,.tsx --fix --no-error-on-unmatched-pattern src test build-tools projenrc .projenrc.ts"
+          "exec": "eslint --ext .ts,.tsx --fix --no-error-on-unmatched-pattern src src build-tools projenrc .projenrc.ts"
         }
       ]
     },
@@ -126,7 +126,18 @@
     },
     "post-compile": {
       "name": "post-compile",
-      "description": "Runs after successful compilation"
+      "description": "Runs after successful compilation",
+      "steps": [
+        {
+          "exec": "mv lib/index.js  lib/index.mjs"
+        },
+        {
+          "exec": "tsc --module commonjs"
+        },
+        {
+          "exec": "mv lib/index.js  lib/index.cjs"
+        }
+      ]
     },
     "post-upgrade": {
       "name": "post-upgrade",
@@ -134,13 +145,19 @@
     },
     "pre-compile": {
       "name": "pre-compile",
-      "description": "Prepare the project for compilation"
+      "description": "Prepare the project for compilation",
+      "steps": [
+        {
+          "exec": "rm -rf lib"
+        }
+      ]
     },
     "release": {
       "name": "release",
       "description": "Prepare a release from \"main\" branch",
       "env": {
-        "RELEASE": "true"
+        "RELEASE": "true",
+        "MAJOR": "1"
       },
       "steps": [
         {
@@ -165,20 +182,7 @@
       "description": "Run tests",
       "steps": [
         {
-          "exec": "jest --passWithNoTests --updateSnapshot",
-          "receiveArgs": true
-        },
-        {
           "spawn": "eslint"
-        }
-      ]
-    },
-    "test:watch": {
-      "name": "test:watch",
-      "description": "Run jest in watch mode",
-      "steps": [
-        {
-          "exec": "jest --watch"
         }
       ]
     },

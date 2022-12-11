@@ -5,11 +5,11 @@
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "inlineSourceMap": true,
-    "inlineSources": true,
+    "inlineSources": false,
     "lib": [
-      "es2019"
+      "es2022"
     ],
-    "module": "CommonJS",
+    "module": "es2022",
     "noEmitOnError": false,
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
@@ -22,12 +22,14 @@
     "strictNullChecks": true,
     "strictPropertyInitialization": true,
     "stripInternal": true,
-    "target": "ES2019"
+    "target": "es2022",
+    "moduleResolution": "Node16",
+    "outDir": "lib"
   },
   "include": [
     ".projenrc.js",
     "src/**/*.ts",
-    "test/**/*.ts",
+    "src/**/*.ts",
     ".projenrc.ts",
     "projenrc/**/*.ts"
   ],
