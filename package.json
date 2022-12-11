@@ -1,6 +1,10 @@
 {
   "name": "appsync-client-node",
   "description": "Lightweight AWS AppSync client optimized for Lambda Node.js Runtime",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tinovyatkin/appsync-client-node.git"
+  },
   "scripts": {
     "build": "npx projen build",
     "bump": "npx projen bump",
@@ -56,7 +60,7 @@
     "node": ">= 16.15.0"
   },
   "main": "lib/index.js",
-  "license": "Apache-2.0",
+  "license": "MIT",
   "version": "0.0.0",
   "types": "lib/index.d.ts",
   "files": [

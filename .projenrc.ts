@@ -23,6 +23,8 @@ const project = new typescript.TypeScriptProject({
   authorName: "Konstantin Vyatkin",
   authorEmail: "tino@vtkn.io",
   majorVersion: 1,
+  license: "MIT",
+  repository: "https://github.com/tinovyatkin/appsync-client-node.git",
   defaultReleaseBranch: "main",
   packageManager: javascript.NodePackageManager.NPM,
   projenrcTs: true,
