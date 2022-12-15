@@ -40,8 +40,9 @@ jspm_packages/
 !/.prettierignore
 !/.prettierrc.json
 !/tsconfig.json
-!/tsconfig.dev.json
 !/src/
 /lib
 /dist/
 !/.eslintrc.json
+!/.vscode/extensions.json
+!/.vscode/settings.json

@@ -1,5 +1,5 @@
 import * as path from "path";
-import { javascript, typescript } from "projen";
+import { javascript, JsonPatch, typescript } from "projen";
 import { NpmAccess } from "projen/lib/javascript";
 
 const outDir = "lib";
@@ -36,12 +36,15 @@ const project = new typescript.TypeScriptProject({
   jest: false,
   testdir: "src",
   prettier: true,
-  tsconfig: {
+  disableTsconfig: true,
+  tsconfigDevFile: "tsconfig.json",
+  tsconfigDev: {
     compilerOptions: {
       // @ts-expect-error -- not yet supported by projen
       moduleResolution: "Node16",
       target: "es2022",
       lib: ["es2022"],
+      rootDir: "src",
       module: "es2022",
       outDir,
       inlineSources: false,
@@ -51,16 +54,53 @@ const project = new typescript.TypeScriptProject({
     mergify: false,
   },
   deps: [
-    "@aws-sdk/credential-provider-node@^3",
-    "@aws-sdk/hash-node@^3",
-    "@aws-sdk/protocol-http@^3",
-    "@aws-sdk/signature-v4@^3",
-    "@aws-sdk/types@^3",
-    "aws-xray-sdk-core@^3",
+    "@aws-sdk/credential-provider-node",
+    "@aws-sdk/hash-node",
+    "@aws-sdk/protocol-http",
+    "@aws-sdk/signature-v4",
+    "@aws-sdk/types",
+    "aws-xray-sdk-core",
+  ],
+  devDeps: [
+    "prettier-plugin-organize-imports",
+    "prettier-plugin-organize-attributes",
   ],
 });
+project.tsconfigDev.file.patch(
+  JsonPatch.add("/ts-node", {
+    esm: true,
+    preferTsExts: true,
+    transpileOnly: true,
+    experimentalSpecifierResolution: "node",
+  })
+);
+project.tsconfigDev.file.patch(JsonPatch.replace("/include", [project.srcdir]));
+project.eslint?.addRules({
+  "import/order": "off",
+  "@typescript-eslint/sort-type-union-intersection-members": "warn",
+});
+project.vscode?.extensions.addRecommendations(
+  "dbaeumer.vscode-eslint",
+  "esbenp.prettier-vscode"
+);
+project.vscode?.settings.addSettings(
+  {
+    "editor.codeActionsOnSave": {
+      "source.fixAll": true,
+      "source.organizeImports": true,
+    },
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+  },
+  "typescript"
+);
 
 project.eslint?.addIgnorePattern(path.join(outDir, "**"));
+project.tasks
+  .tryFind("eslint")
+  ?.reset(
+    `eslint --report-unused-disable-directives --color --cache --ext .ts ${project.srcdir}`
+  );
 project.package.addField("files", [outDir]);
 
 project.preCompileTask.reset(`rm -rf ${outDir}`);
@@ -74,7 +114,7 @@ project.postCompileTask.exec(
 
 project.package.addField("type", "module");
 project.defaultTask?.reset(
-  `ts-node --project ${project.tsconfigDev.fileName} --esm --preferTsExts --experimentalSpecifierResolution node .projenrc.ts`
+  `node --enable-source-maps --no-warnings --loader=ts-node/esm .projenrc.ts`
 );
 project.package.addField("exports", {
   import: `./${path.join(outDir, "index.mjs")}`,

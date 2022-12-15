@@ -14,7 +14,7 @@
   "parserOptions": {
     "ecmaVersion": 2018,
     "sourceType": "module",
-    "project": "./tsconfig.dev.json"
+    "project": "./tsconfig.json"
   },
   "extends": [
     "plugin:import/typescript",
@@ -31,7 +31,7 @@
     "import/resolver": {
       "node": {},
       "typescript": {
-        "project": "./tsconfig.dev.json",
+        "project": "./tsconfig.json",
         "alwaysTryTypes": true
       }
     }
@@ -71,19 +71,7 @@
     "import/no-unresolved": [
       "error"
     ],
-    "import/order": [
-      "warn",
-      {
-        "groups": [
-          "builtin",
-          "external"
-        ],
-        "alphabetize": {
-          "order": "asc",
-          "caseInsensitive": true
-        }
-      }
-    ],
+    "import/order": "off",
     "no-duplicate-imports": [
       "error"
     ],
@@ -132,7 +120,8 @@
           "method"
         ]
       }
-    ]
+    ],
+    "@typescript-eslint/sort-type-union-intersection-members": "warn"
   },
   "overrides": [
     {

@@ -87,7 +87,7 @@
       "description": "Synthesize project files",
       "steps": [
         {
-          "exec": "ts-node --project tsconfig.dev.json --esm --preferTsExts --experimentalSpecifierResolution node .projenrc.ts"
+          "exec": "node --enable-source-maps --no-warnings --loader=ts-node/esm .projenrc.ts"
         }
       ]
     },
@@ -108,7 +108,7 @@
       "description": "Runs eslint against the codebase",
       "steps": [
         {
-          "exec": "eslint --ext .ts,.tsx --fix --no-error-on-unmatched-pattern src src build-tools projenrc .projenrc.ts"
+          "exec": "eslint --report-unused-disable-directives --color --cache --ext .ts src"
         }
       ]
     },
