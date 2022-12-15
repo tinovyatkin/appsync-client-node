@@ -33,15 +33,22 @@ const project = new typescript.TypeScriptProject({
     "graphql",
     "gql",
   ],
-  jest: false,
+  jest: true,
+  jestOptions: {
+    junitReporting: false,
+    jestConfig: {
+      coverageProvider: "v8",
+    },
+  },
+  codeCov: true,
+  codeCovTokenSecret: "CODECOV_TOKEN",
   testdir: "src",
   prettier: true,
   disableTsconfig: true,
   tsconfigDevFile: "tsconfig.json",
   tsconfigDev: {
     compilerOptions: {
-      // @ts-expect-error -- not yet supported by projen
-      moduleResolution: "Node16",
+      moduleResolution: javascript.TypeScriptModuleResolution.NODE,
       target: "es2022",
       lib: ["es2022"],
       rootDir: "src",
@@ -49,6 +56,7 @@ const project = new typescript.TypeScriptProject({
       outDir,
       inlineSources: false,
     },
+    exclude: ["**/*.test.ts"],
   },
   githubOptions: {
     mergify: false,
@@ -62,6 +70,7 @@ const project = new typescript.TypeScriptProject({
     "aws-xray-sdk-core",
   ],
   devDeps: [
+    "@aws-amplify/amplify-appsync-simulator",
     "prettier-plugin-organize-imports",
     "prettier-plugin-organize-attributes",
   ],
@@ -96,14 +105,16 @@ project.vscode?.settings.addSettings(
 );
 
 project.eslint?.addIgnorePattern(path.join(outDir, "**"));
-project.tasks
-  .tryFind("eslint")
-  ?.reset(
-    `eslint --report-unused-disable-directives --color --cache --ext .ts ${project.srcdir}`
-  );
+project.eslint?.addIgnorePattern(path.join(project.testdir, "*.test.ts"));
+const eslintTask = project.tasks.tryFind("eslint")!;
+eslintTask?.reset(
+  `eslint --report-unused-disable-directives --color --cache --ext .ts ${project.srcdir}`
+);
 project.package.addField("files", [outDir]);
 
-project.preCompileTask.reset(`rm -rf ${outDir}`);
+project.preCompileTask.reset();
+project.preCompileTask.spawn(eslintTask);
+project.preCompileTask.exec(`rm -rf ${outDir}`);
 project.postCompileTask.reset(
   `mv ${path.join(outDir, "index.js")}  ${path.join(outDir, "index.mjs")}`
 );
@@ -120,5 +131,13 @@ project.package.addField("exports", {
   import: `./${path.join(outDir, "index.mjs")}`,
   require: `./${path.join(outDir, "index.cjs")}`,
 });
+
+project.jest!.config.preset = "ts-jest/presets/default-esm";
+delete project.jest?.config.globals;
+project.testTask.reset("jest");
+project.testTask.env(
+  "NODE_OPTIONS",
+  "--experimental-vm-modules --enable-source-maps --no-warnings"
+);
 
 project.synth();

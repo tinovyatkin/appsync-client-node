@@ -148,6 +148,9 @@
       "description": "Prepare the project for compilation",
       "steps": [
         {
+          "spawn": "eslint"
+        },
+        {
           "exec": "rm -rf lib"
         }
       ]
@@ -180,9 +183,21 @@
     "test": {
       "name": "test",
       "description": "Run tests",
+      "env": {
+        "NODE_OPTIONS": "--experimental-vm-modules --enable-source-maps --no-warnings"
+      },
       "steps": [
         {
-          "spawn": "eslint"
+          "exec": "jest"
+        }
+      ]
+    },
+    "test:watch": {
+      "name": "test:watch",
+      "description": "Run jest in watch mode",
+      "steps": [
+        {
+          "exec": "jest --watch"
         }
       ]
     },

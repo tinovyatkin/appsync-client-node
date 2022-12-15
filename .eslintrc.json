@@ -45,7 +45,8 @@
     "coverage",
     "!.projenrc.ts",
     "!projenrc/**/*.ts",
-    "lib/**"
+    "lib/**",
+    "src/*.test.ts"
   ],
   "rules": {
     "prettier/prettier": [
