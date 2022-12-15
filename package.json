@@ -30,7 +30,6 @@
     "organization": false
   },
   "devDependencies": {
-    "@mountainpass/cool-bits-for-projen": "^0.2.8",
     "@types/node": "^16",
     "@typescript-eslint/eslint-plugin": "^5",
     "@typescript-eslint/parser": "^5",
@@ -56,10 +55,21 @@
     "@aws-sdk/types": "^3",
     "aws-xray-sdk-core": "^3"
   },
+  "keywords": [
+    "appsync",
+    "aws",
+    "backend",
+    "gql",
+    "graphql",
+    "lambda",
+    "nodejs",
+    "typescript",
+    "xray"
+  ],
   "engines": {
     "node": ">= 16.15.0"
   },
-  "main": "lib/index.js",
+  "main": "lib/index.cjs",
   "license": "MIT",
   "version": "0.0.0",
   "types": "lib/index.d.ts",

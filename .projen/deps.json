@@ -1,10 +1,6 @@
 {
   "dependencies": [
     {
-      "name": "@mountainpass/cool-bits-for-projen",
-      "type": "build"
-    },
-    {
       "name": "@types/node",
       "version": "^16",
       "type": "build"

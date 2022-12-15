@@ -1,6 +1,6 @@
 # appsync-client-node
 
-Lightweight AWS AppSync client for Node.js (specially for AWS Lambda Node.j runtime):
+Lightweight AWS AppSync client for Node.js (specially for AWS Lambda Node.js runtime):
 
 - supports IAM and API Key authentications
 - supports XRay tracing
@@ -9,5 +9,28 @@ Lightweight AWS AppSync client for Node.js (specially for AWS Lambda Node.j runt
 - comes with lightweight `gql` tag (just stipes whitespace) for prettier, GraphQL VSCode syntax highlighting, etc.
 - ESM and CommonJs modules
 - TypeScript generics support for variables and results
-- depends only on `@aws-sdk` v3 (that comes built-in on Node 18.x lambda runtime) and `aws-xray-sdk-core` results in very small bundle (when used with CDK `NodejsFunction`)
+- depends only on `@aws-sdk` v3 (that comes built-in on Node 18.x lambda runtime) and `aws-xray-sdk-core` that results in very small bundle (when used with CDK `NodejsFunction`)
 - MIT licensed
+
+## Usage
+
+```ts
+import { appSyncClient, gql } from "appsync-client-node";
+
+const books = await appSyncClient<ReturnValueType, { author: string }>({
+  query: gql`
+    query books($author: String!) {
+      books(author: $author) {
+        ...BookFragment
+      }
+    }
+  `,
+  variables: {
+    author: "Remark",
+  },
+});
+```
+
+## License
+
+MIT
