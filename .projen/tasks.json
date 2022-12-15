@@ -87,7 +87,7 @@
       "description": "Synthesize project files",
       "steps": [
         {
-          "exec": "ts-node --project tsconfig.dev.json --esm --preferTsExts --experimentalSpecifierResolution node .projenrc.ts"
+          "exec": "node --enable-source-maps --no-warnings --loader=ts-node/esm .projenrc.ts"
         }
       ]
     },

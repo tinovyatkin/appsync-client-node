@@ -54,6 +54,14 @@
       "type": "build"
     },
     {
+      "name": "prettier-plugin-organize-attributes",
+      "type": "build"
+    },
+    {
+      "name": "prettier-plugin-organize-imports",
+      "type": "build"
+    },
+    {
       "name": "projen",
       "type": "build"
     },
@@ -72,32 +80,26 @@
     },
     {
       "name": "@aws-sdk/credential-provider-node",
-      "version": "^3",
       "type": "runtime"
     },
     {
       "name": "@aws-sdk/hash-node",
-      "version": "^3",
       "type": "runtime"
     },
     {
       "name": "@aws-sdk/protocol-http",
-      "version": "^3",
       "type": "runtime"
     },
     {
       "name": "@aws-sdk/signature-v4",
-      "version": "^3",
       "type": "runtime"
     },
     {
       "name": "@aws-sdk/types",
-      "version": "^3",
       "type": "runtime"
     },
     {
       "name": "aws-xray-sdk-core",
-      "version": "^3",
       "type": "runtime"
     }
   ],

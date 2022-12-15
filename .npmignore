@@ -3,7 +3,6 @@
 permissions-backup.acl
 /dist/changelog.md
 /dist/version.txt
-/tsconfig.dev.json
 /src/
 !/lib/
 !/lib/**/*.js

@@ -1,5 +1,5 @@
 import * as path from "path";
-import { javascript, typescript } from "projen";
+import { javascript, JsonPatch, typescript } from "projen";
 import { NpmAccess } from "projen/lib/javascript";
 
 const outDir = "lib";
@@ -36,7 +36,9 @@ const project = new typescript.TypeScriptProject({
   jest: false,
   testdir: "src",
   prettier: true,
-  tsconfig: {
+  disableTsconfig: true,
+  tsconfigDevFile: "tsconfig.json",
+  tsconfigDev: {
     compilerOptions: {
       // @ts-expect-error -- not yet supported by projen
       moduleResolution: "Node16",
@@ -46,19 +48,52 @@ const project = new typescript.TypeScriptProject({
       outDir,
       inlineSources: false,
     },
+    "ts-node": {
+      esm: true,
+      preferTsExts: true,
+      experimentalSpecifierResolution: "node",
+      experimentalResolver: true,
+    },
   },
   githubOptions: {
     mergify: false,
   },
   deps: [
-    "@aws-sdk/credential-provider-node@^3",
-    "@aws-sdk/hash-node@^3",
-    "@aws-sdk/protocol-http@^3",
-    "@aws-sdk/signature-v4@^3",
-    "@aws-sdk/types@^3",
-    "aws-xray-sdk-core@^3",
+    "@aws-sdk/credential-provider-node",
+    "@aws-sdk/hash-node",
+    "@aws-sdk/protocol-http",
+    "@aws-sdk/signature-v4",
+    "@aws-sdk/types",
+    "aws-xray-sdk-core",
+  ],
+  devDeps: [
+    "prettier-plugin-organize-imports",
+    "prettier-plugin-organize-attributes",
   ],
 });
+project.tsconfigDev.file.patch(
+  JsonPatch.add("/ts-node", {
+    esm: true,
+    preferTsExts: true,
+    experimentalSpecifierResolution: "node",
+  })
+);
+project.eslint?.addRules({ "import/order": "off" });
+project.vscode?.extensions.addRecommendations(
+  "dbaeumer.vscode-eslint",
+  "esbenp.prettier-vscode"
+);
+project.vscode?.settings.addSettings(
+  {
+    "editor.codeActionsOnSave": {
+      "source.fixAll": true,
+      "source.organizeImports": true,
+    },
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+  },
+  "typescript"
+);
 
 project.eslint?.addIgnorePattern(path.join(outDir, "**"));
 project.package.addField("files", [outDir]);
@@ -74,7 +109,7 @@ project.postCompileTask.exec(
 
 project.package.addField("type", "module");
 project.defaultTask?.reset(
-  `ts-node --project ${project.tsconfigDev.fileName} --esm --preferTsExts --experimentalSpecifierResolution node .projenrc.ts`
+  `node --enable-source-maps --no-warnings --loader=ts-node/esm .projenrc.ts`
 );
 project.package.addField("exports", {
   import: `./${path.join(outDir, "index.mjs")}`,
