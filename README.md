@@ -1,4 +1,4 @@
-# appsync-client-node
+# appsync-client-node [![codecov](https://codecov.io/gh/tinovyatkin/appsync-client-node/branch/main/graph/badge.svg?token=QHcGrDPJkg)](https://codecov.io/gh/tinovyatkin/appsync-client-node)
 
 Lightweight AWS AppSync client for Node.js (specially for AWS Lambda Node.js runtime):
 
