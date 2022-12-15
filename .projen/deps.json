@@ -1,6 +1,14 @@
 {
   "dependencies": [
     {
+      "name": "@aws-amplify/amplify-appsync-simulator",
+      "type": "build"
+    },
+    {
+      "name": "@types/jest",
+      "type": "build"
+    },
+    {
       "name": "@types/node",
       "version": "^16",
       "type": "build"
@@ -41,6 +49,10 @@
       "type": "build"
     },
     {
+      "name": "jest",
+      "type": "build"
+    },
+    {
       "name": "json-schema",
       "type": "build"
     },
@@ -68,6 +80,10 @@
     {
       "name": "standard-version",
       "version": "^9",
+      "type": "build"
+    },
+    {
+      "name": "ts-jest",
       "type": "build"
     },
     {

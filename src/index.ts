@@ -113,6 +113,7 @@ export async function graphQlClient<T = unknown, V = unknown>({
       : [http, httpAgent, url.port || 80];
 
   const req = new HttpRequest({
+    protocol: url.protocol,
     method: "POST",
     path: url.pathname,
     hostname: url.hostname,
