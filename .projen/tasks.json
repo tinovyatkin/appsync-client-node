@@ -108,7 +108,7 @@
       "description": "Runs eslint against the codebase",
       "steps": [
         {
-          "exec": "eslint --ext .ts,.tsx --fix --no-error-on-unmatched-pattern src src build-tools projenrc .projenrc.ts"
+          "exec": "eslint --report-unused-disable-directives --color --cache --ext .ts src"
         }
       ]
     },

@@ -44,15 +44,10 @@ const project = new typescript.TypeScriptProject({
       moduleResolution: "Node16",
       target: "es2022",
       lib: ["es2022"],
+      rootDir: "src",
       module: "es2022",
       outDir,
       inlineSources: false,
-    },
-    "ts-node": {
-      esm: true,
-      preferTsExts: true,
-      experimentalSpecifierResolution: "node",
-      experimentalResolver: true,
     },
   },
   githubOptions: {
@@ -75,10 +70,15 @@ project.tsconfigDev.file.patch(
   JsonPatch.add("/ts-node", {
     esm: true,
     preferTsExts: true,
+    transpileOnly: true,
     experimentalSpecifierResolution: "node",
   })
 );
-project.eslint?.addRules({ "import/order": "off" });
+project.tsconfigDev.file.patch(JsonPatch.replace("/include", [project.srcdir]));
+project.eslint?.addRules({
+  "import/order": "off",
+  "@typescript-eslint/sort-type-union-intersection-members": "warn",
+});
 project.vscode?.extensions.addRecommendations(
   "dbaeumer.vscode-eslint",
   "esbenp.prettier-vscode"
@@ -96,6 +96,11 @@ project.vscode?.settings.addSettings(
 );
 
 project.eslint?.addIgnorePattern(path.join(outDir, "**"));
+project.tasks
+  .tryFind("eslint")
+  ?.reset(
+    `eslint --report-unused-disable-directives --color --cache --ext .ts ${project.srcdir}`
+  );
 project.package.addField("files", [outDir]);
 
 project.preCompileTask.reset(`rm -rf ${outDir}`);

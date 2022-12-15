@@ -120,7 +120,8 @@
           "method"
         ]
       }
-    ]
+    ],
+    "@typescript-eslint/sort-type-union-intersection-members": "warn"
   },
   "overrides": [
     {
