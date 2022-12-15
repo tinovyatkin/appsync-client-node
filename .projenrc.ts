@@ -1,17 +1,6 @@
 import * as path from "path";
-import { GitHubber, NpmReleaser } from "@mountainpass/cool-bits-for-projen";
 import { javascript, typescript } from "projen";
 import { NpmAccess } from "projen/lib/javascript";
-
-const gitHubber = new GitHubber({
-  name: "appsync-client-node",
-  username: "tinovyatkin",
-});
-
-const npmReleaser = new NpmReleaser(gitHubber, {
-  access: NpmAccess.PUBLIC,
-  release: true,
-});
 
 const outDir = "lib";
 
@@ -25,10 +14,25 @@ const project = new typescript.TypeScriptProject({
   majorVersion: 1,
   license: "MIT",
   repository: "https://github.com/tinovyatkin/appsync-client-node.git",
-  defaultReleaseBranch: "main",
   packageManager: javascript.NodePackageManager.NPM,
   projenrcTs: true,
   minNodeVersion: "16.15.0",
+  entrypoint: path.join(outDir, "index.cjs"),
+  entrypointTypes: path.join(outDir, "index.d.ts"),
+  defaultReleaseBranch: "main",
+  releaseToNpm: true,
+  npmAccess: NpmAccess.PUBLIC,
+  keywords: [
+    "appsync",
+    "aws",
+    "lambda",
+    "nodejs",
+    "typescript",
+    "backend",
+    "xray",
+    "graphql",
+    "gql",
+  ],
   jest: false,
   testdir: "src",
   prettier: true,
@@ -54,7 +58,6 @@ const project = new typescript.TypeScriptProject({
     "@aws-sdk/types@^3",
     "aws-xray-sdk-core@^3",
   ],
-  devDeps: ["@mountainpass/cool-bits-for-projen"],
 });
 
 project.eslint?.addIgnorePattern(path.join(outDir, "**"));
@@ -77,8 +80,5 @@ project.package.addField("exports", {
   import: `./${path.join(outDir, "index.mjs")}`,
   require: `./${path.join(outDir, "index.cjs")}`,
 });
-
-gitHubber.addToProject(project);
-npmReleaser.addToProject(project);
 
 project.synth();
