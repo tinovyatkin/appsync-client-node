@@ -66,6 +66,8 @@ export const gql = (
  */
 const APPSYNC_MAX_QUERY_RUNTIME_MS = 30 * 1000;
 
+if (!process.env.AWS_XRAY_CONTEXT_MISSING)
+  AWSXray.setContextMissingStrategy("IGNORE_ERROR");
 const tracedHttps = AWSXray.captureHTTPs(https, true);
 
 const httpsAgent = new tracedHttps.Agent({
