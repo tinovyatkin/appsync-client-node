@@ -48,7 +48,7 @@
     "prettier": "^2.8.1",
     "prettier-plugin-organize-attributes": "^0.0.5",
     "prettier-plugin-organize-imports": "^3.2.1",
-    "projen": "^0.65.72",
+    "projen": "^0.65.73",
     "standard-version": "^9",
     "ts-jest": "^29.0.3",
     "ts-node": "^10.9.1",
