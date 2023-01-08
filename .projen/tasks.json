@@ -188,7 +188,8 @@
       },
       "steps": [
         {
-          "exec": "jest"
+          "exec": "jest",
+          "receiveArgs": true
         }
       ]
     },
