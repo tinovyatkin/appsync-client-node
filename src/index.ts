@@ -26,6 +26,11 @@ export type GraphQlRequest<VarsType = Record<string, unknown>> = {
   operationName?: string;
 };
 
+export type GraphQlResponse<DataType = Record<string, unknown>> = {
+  data: DataType;
+  errors?: readonly GraphQLError[];
+};
+
 class Sha256 implements IHash {
   private readonly hash: Hash;
 
@@ -42,6 +47,14 @@ class Sha256 implements IHash {
   }
 }
 
+export class TimeoutError extends Error {
+  readonly name = "TimeoutError";
+  constructor(message: string, readonly request: GraphQlRequest<any>) {
+    super(message);
+    Object.setPrototypeOf(this, TimeoutError.prototype);
+  }
+}
+
 /**
  * Minimal gql tag just for syntax highlighting and Prettier while writing client GraphQL queries in
  * Lambda does some whitespace stripping
@@ -50,13 +63,11 @@ export const gql = (
   chunks: TemplateStringsArray,
   ...variables: unknown[]
 ): string =>
-  chunks
-    .reduce(
-      (accumulator, chunk, index) =>
-        `${accumulator}${chunk}${index in variables ? variables[index] : ""}`,
-      ""
-    )
-    .replace(/^\s+|\s$/g, "");
+  String.raw(chunks, ...variables)
+    .replace(/^\s+/gm, "")
+    .replace(/\s*$/gm, "")
+    .replace(/^\s*#\s*(?!import).*$/gm, "")
+    .replace(/\n[\s\t]*\n/g, "\n");
 
 /**
  * Maximum GraphQL request (queries, mutations, subscriptions) execution time on AppSync - 30
@@ -95,11 +106,17 @@ export async function graphQlClient<T = unknown, V = unknown>({
   // so, we can try to infer region from it
   region = /\.([^.]+)\.amazonaws\.com\//.exec(appsyncUrl)?.[1] ??
     process.env.AWS_REGION,
+
+  // options
+  maxRetries = 5,
+  timeoutMs = APPSYNC_MAX_QUERY_RUNTIME_MS,
 }: {
   appsyncUrl: string;
   apiKey?: string;
   request: GraphQlRequest<V>;
   region?: string;
+  maxRetries?: number;
+  timeoutMs?: number;
 }): Promise<
   | Pick<IncomingMessage, "statusCode"> & {
       body: string | { data: T; errors?: readonly GraphQLError[] };
@@ -142,8 +159,15 @@ export async function graphQlClient<T = unknown, V = unknown>({
       (result) => {
         let data = "";
         result.socket.setNoDelay(true);
+        result.socket.setTimeout(timeoutMs).once("timeout", () => {
+          result.socket.end(() => {
+            throw new TimeoutError(
+              `Operation timed out after ${timeoutMs} milliseconds`,
+              request
+            );
+          });
+        });
         result
-          .setTimeout(APPSYNC_MAX_QUERY_RUNTIME_MS)
           .setEncoding("utf-8")
           .on("data", (chunk: string) => {
             data += chunk;
@@ -162,7 +186,7 @@ export async function graphQlClient<T = unknown, V = unknown>({
       }
     );
     httpRequest.once("error", (err: NodeJS.ErrnoException) => {
-      if (err.code === "ECONNRESET") {
+      if (err.code === "ECONNRESET" && maxRetries > 1) {
         // retry
         return resolve(
           graphQlClient<T>({
@@ -170,6 +194,7 @@ export async function graphQlClient<T = unknown, V = unknown>({
             apiKey,
             request,
             region,
+            maxRetries: maxRetries - 1,
           })
         );
       }

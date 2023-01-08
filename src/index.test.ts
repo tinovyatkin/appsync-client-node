@@ -114,26 +114,29 @@ describe("appsync-client-node", () => {
 
   test("gql", async () => {
     expect(gql`
+      #import "./fragments/some.graphql"
+
       {
         hero {
           name
           # Queries can have comments!
           friends {
-            name
+            ${["name", "age", "sex"].join("\n")}
           }
         }
       }
     `).toMatchInlineSnapshot(`
-      "{
-              hero {
-                name
-                # Queries can have comments!
-                friends {
-                  name
-                }
-              }
-            }
-         "
+      "#import "./fragments/some.graphql"
+      {
+      hero {
+      name
+      friends {
+      name
+      age
+      sex
+      }
+      }
+      }"
     `);
   });
 
