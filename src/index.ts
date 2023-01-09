@@ -3,8 +3,10 @@
  * NodejsFunction construct Client can be authorized via either API Key or IAM (recommended)
  */
 
+import { randomInt } from "node:crypto";
 import http, { type IncomingMessage } from "node:http";
 import https from "node:https";
+import { setTimeout } from "node:timers/promises";
 import { URL } from "node:url";
 
 import { defaultProvider as credentialProvider } from "@aws-sdk/credential-provider-node";
@@ -85,7 +87,9 @@ const httpsAgent = new tracedHttps.Agent({
   keepAlive: true,
   timeout: APPSYNC_MAX_QUERY_RUNTIME_MS,
 });
-const httpAgent = new http.Agent({ timeout: APPSYNC_MAX_QUERY_RUNTIME_MS }); // only used in tests so no keep-alive
+const httpAgent = new http.Agent({
+  timeout: APPSYNC_MAX_QUERY_RUNTIME_MS,
+}); // only used in tests so no keep-alive
 
 export interface GraphQLError {
   path: string[];
@@ -110,6 +114,7 @@ export async function graphQlClient<T = unknown, V = unknown>({
   // options
   maxRetries = 5,
   timeoutMs = APPSYNC_MAX_QUERY_RUNTIME_MS,
+  signal = AbortSignal.timeout(timeoutMs),
 }: {
   appsyncUrl: string;
   apiKey?: string;
@@ -117,6 +122,7 @@ export async function graphQlClient<T = unknown, V = unknown>({
   region?: string;
   maxRetries?: number;
   timeoutMs?: number;
+  signal?: AbortSignal;
 }): Promise<
   | Pick<IncomingMessage, "statusCode"> & {
       body: string | { data: T; errors?: readonly GraphQLError[] };
@@ -155,18 +161,17 @@ export async function graphQlClient<T = unknown, V = unknown>({
 
   return new Promise((resolve, reject) => {
     const httpRequest = h.request(
-      { ...req, host: url.hostname, port, agent },
+      {
+        ...req,
+        host: url.hostname,
+        port,
+        agent,
+        timeout: timeoutMs,
+        signal,
+      },
       (result) => {
         let data = "";
         result.socket.setNoDelay(true);
-        result.socket.setTimeout(timeoutMs).once("timeout", () => {
-          result.socket.end(() => {
-            throw new TimeoutError(
-              `Operation timed out after ${timeoutMs} milliseconds`,
-              request
-            );
-          });
-        });
         result
           .setEncoding("utf-8")
           .on("data", (chunk: string) => {
@@ -185,8 +190,17 @@ export async function graphQlClient<T = unknown, V = unknown>({
           .once("error", (err) => reject(err));
       }
     );
-    httpRequest.once("error", (err: NodeJS.ErrnoException) => {
+    httpRequest.once("timeout", () => {
+      httpRequest.destroy(
+        new TimeoutError(
+          `Operation timed out after ${timeoutMs} milliseconds`,
+          request
+        )
+      );
+    });
+    httpRequest.once("error", async (err: NodeJS.ErrnoException) => {
       if (err.code === "ECONNRESET" && maxRetries > 1) {
+        await setTimeout(randomInt(100, 1500));
         // retry
         return resolve(
           graphQlClient<T>({
