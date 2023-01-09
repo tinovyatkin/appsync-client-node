@@ -58,8 +58,9 @@ const project = new typescript.TypeScriptProject({
     },
     exclude: ["**/*.test.ts"],
   },
+  autoMerge: true,
   githubOptions: {
-    mergify: false,
+    mergify: true,
   },
   deps: [
     "@aws-sdk/credential-provider-node",
