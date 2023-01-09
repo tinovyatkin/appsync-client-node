@@ -81,7 +81,14 @@ const APPSYNC_MAX_QUERY_RUNTIME_MS = 30 * 1000;
 
 if (!process.env.AWS_XRAY_CONTEXT_MISSING)
   AWSXray.setContextMissingStrategy("IGNORE_ERROR");
-const tracedHttps = AWSXray.captureHTTPs(https, true);
+
+/**
+ * Don't capture if OpenTelemetry auto-instrumentation is enabled
+ * @see {@link https://aws-otel.github.io/docs/getting-started/lambda/lambda-js}
+ */
+const tracedHttps = process.env.AWS_LAMBDA_EXEC_WRAPPER
+  ? https
+  : AWSXray.captureHTTPs(https, true);
 
 const httpsAgent = new tracedHttps.Agent({
   keepAlive: true,
