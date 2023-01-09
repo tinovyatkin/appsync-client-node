@@ -3,8 +3,10 @@
  * NodejsFunction construct Client can be authorized via either API Key or IAM (recommended)
  */
 
+import { randomInt } from "node:crypto";
 import http, { type IncomingMessage } from "node:http";
 import https from "node:https";
+import { setTimeout } from "node:timers/promises";
 import { URL } from "node:url";
 
 import { defaultProvider as credentialProvider } from "@aws-sdk/credential-provider-node";
@@ -26,6 +28,11 @@ export type GraphQlRequest<VarsType = Record<string, unknown>> = {
   operationName?: string;
 };
 
+export type GraphQlResponse<DataType = Record<string, unknown>> = {
+  data: DataType;
+  errors?: readonly GraphQLError[];
+};
+
 class Sha256 implements IHash {
   private readonly hash: Hash;
 
@@ -42,6 +49,14 @@ class Sha256 implements IHash {
   }
 }
 
+export class TimeoutError extends Error {
+  readonly name = "TimeoutError";
+  constructor(message: string, readonly request: GraphQlRequest<any>) {
+    super(message);
+    Object.setPrototypeOf(this, TimeoutError.prototype);
+  }
+}
+
 /**
  * Minimal gql tag just for syntax highlighting and Prettier while writing client GraphQL queries in
  * Lambda does some whitespace stripping
@@ -50,13 +65,11 @@ export const gql = (
   chunks: TemplateStringsArray,
   ...variables: unknown[]
 ): string =>
-  chunks
-    .reduce(
-      (accumulator, chunk, index) =>
-        `${accumulator}${chunk}${index in variables ? variables[index] : ""}`,
-      ""
-    )
-    .replace(/^\s+|\s$/g, "");
+  String.raw(chunks, ...variables)
+    .replace(/^\s+/gm, "")
+    .replace(/\s*$/gm, "")
+    .replace(/^\s*#\s*(?!import).*$/gm, "")
+    .replace(/\n[\s\t]*\n/g, "\n");
 
 /**
  * Maximum GraphQL request (queries, mutations, subscriptions) execution time on AppSync - 30
@@ -74,7 +87,9 @@ const httpsAgent = new tracedHttps.Agent({
   keepAlive: true,
   timeout: APPSYNC_MAX_QUERY_RUNTIME_MS,
 });
-const httpAgent = new http.Agent({ timeout: APPSYNC_MAX_QUERY_RUNTIME_MS }); // only used in tests so no keep-alive
+const httpAgent = new http.Agent({
+  timeout: APPSYNC_MAX_QUERY_RUNTIME_MS,
+}); // only used in tests so no keep-alive
 
 export interface GraphQLError {
   path: string[];
@@ -95,11 +110,19 @@ export async function graphQlClient<T = unknown, V = unknown>({
   // so, we can try to infer region from it
   region = /\.([^.]+)\.amazonaws\.com\//.exec(appsyncUrl)?.[1] ??
     process.env.AWS_REGION,
+
+  // options
+  maxRetries = 5,
+  timeoutMs = APPSYNC_MAX_QUERY_RUNTIME_MS,
+  signal = AbortSignal.timeout(timeoutMs),
 }: {
   appsyncUrl: string;
   apiKey?: string;
   request: GraphQlRequest<V>;
   region?: string;
+  maxRetries?: number;
+  timeoutMs?: number;
+  signal?: AbortSignal;
 }): Promise<
   | Pick<IncomingMessage, "statusCode"> & {
       body: string | { data: T; errors?: readonly GraphQLError[] };
@@ -138,12 +161,18 @@ export async function graphQlClient<T = unknown, V = unknown>({
 
   return new Promise((resolve, reject) => {
     const httpRequest = h.request(
-      { ...req, host: url.hostname, port, agent },
+      {
+        ...req,
+        host: url.hostname,
+        port,
+        agent,
+        timeout: timeoutMs,
+        signal,
+      },
       (result) => {
         let data = "";
         result.socket.setNoDelay(true);
         result
-          .setTimeout(APPSYNC_MAX_QUERY_RUNTIME_MS)
           .setEncoding("utf-8")
           .on("data", (chunk: string) => {
             data += chunk;
@@ -161,8 +190,17 @@ export async function graphQlClient<T = unknown, V = unknown>({
           .once("error", (err) => reject(err));
       }
     );
-    httpRequest.once("error", (err: NodeJS.ErrnoException) => {
-      if (err.code === "ECONNRESET") {
+    httpRequest.once("timeout", () => {
+      httpRequest.destroy(
+        new TimeoutError(
+          `Operation timed out after ${timeoutMs} milliseconds`,
+          request
+        )
+      );
+    });
+    httpRequest.once("error", async (err: NodeJS.ErrnoException) => {
+      if (err.code === "ECONNRESET" && maxRetries > 1) {
+        await setTimeout(randomInt(100, 1500));
         // retry
         return resolve(
           graphQlClient<T>({
@@ -170,6 +208,7 @@ export async function graphQlClient<T = unknown, V = unknown>({
             apiKey,
             request,
             region,
+            maxRetries: maxRetries - 1,
           })
         );
       }

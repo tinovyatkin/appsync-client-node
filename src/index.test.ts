@@ -8,7 +8,21 @@ import {
 } from "@aws-amplify/amplify-appsync-simulator";
 import { jest } from "@jest/globals";
 
-import { appSyncClient, gql, GRAPHQL_API_ENDPOINT_ENV_NAME } from "./index";
+import { once } from "node:events";
+import {
+  createServer,
+  IncomingMessage,
+  RequestListener,
+  ServerResponse,
+} from "node:http";
+import { AddressInfo } from "node:net";
+import {
+  appSyncClient,
+  gql,
+  graphQlClient,
+  GRAPHQL_API_ENDPOINT_ENV_NAME,
+  TimeoutError,
+} from "./index";
 
 describe("appsync-client-node", () => {
   // these are always set on lambdas
@@ -114,26 +128,29 @@ describe("appsync-client-node", () => {
 
   test("gql", async () => {
     expect(gql`
+      #import "./fragments/some.graphql"
+
       {
         hero {
           name
           # Queries can have comments!
           friends {
-            name
+            ${["name", "age", "sex"].join("\n")}
           }
         }
       }
     `).toMatchInlineSnapshot(`
-      "{
-              hero {
-                name
-                # Queries can have comments!
-                friends {
-                  name
-                }
-              }
-            }
-         "
+      "#import "./fragments/some.graphql"
+      {
+      hero {
+      name
+      friends {
+      name
+      age
+      sex
+      }
+      }
+      }"
     `);
   });
 
@@ -168,5 +185,89 @@ describe("appsync-client-node", () => {
     await setTimeout(500);
     expect(onInboxMock).toHaveBeenCalledTimes(1);
     expect(onInboxMock).toHaveBeenCalledWith(page);
+  });
+});
+
+describe("appsync-client-node errors handling", () => {
+  // these are always set on lambdas
+  process.env.AWS_REGION = "eu-west-1";
+  process.env.AWS_ACCESS_KEY_ID = "test-user-key";
+  process.env.AWS_SECRET_ACCESS_KEY = randomBytes(10).toString("hex");
+
+  test("Should emit TimeoutError on timeout", async () => {
+    const server = createServer(async (req, res) => {
+      if (req.method === "POST" && req.url === "/graphql") {
+        // delay response for 1200 ms
+        await setTimeout(1200);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ data: [] }));
+      } else {
+        res.writeHead(404, "No such thing");
+        res.end();
+      }
+    });
+    server.setTimeout(3000);
+    server.listen(0).unref();
+
+    await once(server, "listening");
+    await expect(
+      graphQlClient({
+        appsyncUrl: `http://localhost:${
+          (server.address() as AddressInfo).port
+        }/graphql`,
+        request: {
+          query: gql`
+            query me {
+              name
+            }
+          `,
+        },
+        timeoutMs: 1000,
+      })
+    ).rejects.toBeInstanceOf(TimeoutError);
+
+    server.removeAllListeners();
+    server.close();
+  });
+
+  test("should retry up to specified number of times on connection reset", async () => {
+    const serverHandler = jest
+      .fn<RequestListener<typeof IncomingMessage, typeof ServerResponse>>()
+      .mockImplementationOnce(async (_req, res) => {
+        await setTimeout(500);
+        res.socket?.destroy();
+      })
+      .mockImplementationOnce(async (_req, res) => {
+        await setTimeout(500);
+        res.socket?.destroy();
+      })
+      .mockImplementationOnce(async (_req, res) => {
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ data: [] }));
+      });
+    const server = createServer(serverHandler);
+    server.setTimeout(3000);
+    server.listen(0).unref();
+
+    await once(server, "listening");
+    await expect(
+      graphQlClient({
+        appsyncUrl: `http://localhost:${
+          (server.address() as AddressInfo).port
+        }/graphql`,
+        request: {
+          query: gql`
+            query me {
+              name
+            }
+          `,
+        },
+        maxRetries: 3,
+      })
+    ).resolves.toEqual({ body: { data: [] }, statusCode: 200 });
+    expect(serverHandler).toBeCalledTimes(3);
+
+    server.removeAllListeners();
+    server.close();
   });
 });

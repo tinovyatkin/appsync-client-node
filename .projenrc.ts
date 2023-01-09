@@ -134,7 +134,7 @@ project.package.addField("exports", {
 
 project.jest!.config.preset = "ts-jest/presets/default-esm";
 delete project.jest?.config.globals;
-project.testTask.reset("jest");
+project.testTask.reset("jest", { receiveArgs: true });
 project.testTask.env(
   "NODE_OPTIONS",
   "--experimental-vm-modules --enable-source-maps --no-warnings"
