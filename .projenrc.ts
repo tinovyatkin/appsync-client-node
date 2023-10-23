@@ -75,6 +75,7 @@ const project = new typescript.TypeScriptProject({
   ],
   devDeps: [
     "@aws-amplify/amplify-appsync-simulator",
+    "graphql",
     "prettier-plugin-organize-imports",
     "prettier-plugin-organize-attributes",
   ],
@@ -87,21 +88,22 @@ const project = new typescript.TypeScriptProject({
     yaml: true,
   },
 });
-project.tsconfigDev.file.patch(
+project.package.addPackageResolutions("graphql@$graphql");
+project.tsconfig?.file.patch(
   JsonPatch.add("/ts-node", {
     esm: true,
     preferTsExts: true,
     transpileOnly: true,
     experimentalSpecifierResolution: "node",
-  })
+  }),
 );
-project.tsconfigDev.file.patch(JsonPatch.replace("/include", [project.srcdir]));
+project.tsconfig?.file.patch(JsonPatch.replace("/include", [project.srcdir]));
 project.eslint?.addRules({
   "import/order": "off",
 });
 project.vscode?.extensions.addRecommendations(
   "dbaeumer.vscode-eslint",
-  "esbenp.prettier-vscode"
+  "esbenp.prettier-vscode",
 );
 project.vscode?.settings.addSettings(
   {
@@ -112,7 +114,7 @@ project.vscode?.settings.addSettings(
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.formatOnSave": true,
   },
-  "typescript"
+  "typescript",
 );
 
 project.eslint?.addIgnorePattern(path.join(outDir, "**"));
@@ -127,16 +129,16 @@ project.preCompileTask.reset();
 project.preCompileTask.spawn(project.eslint!.eslintTask);
 project.preCompileTask.exec(`rm -rf ${outDir}`);
 project.postCompileTask.reset(
-  `mv ${path.join(outDir, "index.js")}  ${path.join(outDir, "index.mjs")}`
+  `mv ${path.join(outDir, "index.js")}  ${path.join(outDir, "index.mjs")}`,
 );
 project.postCompileTask.exec("tsc --module commonjs");
 project.postCompileTask.exec(
-  `mv ${path.join(outDir, "index.js")}  ${path.join(outDir, "index.cjs")}`
+  `mv ${path.join(outDir, "index.js")}  ${path.join(outDir, "index.cjs")}`,
 );
 
 project.package.addField("type", "module");
 project.defaultTask?.reset(
-  `node --enable-source-maps --no-warnings --loader=ts-node/esm .projenrc.ts`
+  `node --enable-source-maps --no-warnings --loader=ts-node/esm .projenrc.ts`,
 );
 project.package.addField("exports", {
   import: `./${path.join(outDir, "index.mjs")}`,
@@ -148,7 +150,7 @@ delete project.jest?.config.globals;
 project.testTask.reset("jest", { receiveArgs: true });
 project.testTask.env(
   "NODE_OPTIONS",
-  "--experimental-vm-modules --enable-source-maps --no-warnings"
+  "--experimental-vm-modules --enable-source-maps --no-warnings",
 );
 
 project.synth();

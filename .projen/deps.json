@@ -49,6 +49,10 @@
       "type": "build"
     },
     {
+      "name": "graphql",
+      "type": "build"
+    },
+    {
       "name": "jest",
       "type": "build"
     },
@@ -90,6 +94,11 @@
       "name": "typescript",
       "version": "~5.2.2",
       "type": "build"
+    },
+    {
+      "name": "graphql",
+      "version": "$graphql",
+      "type": "override"
     },
     {
       "name": "@aws-sdk/credential-provider-node",
