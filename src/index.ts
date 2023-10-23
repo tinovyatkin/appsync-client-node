@@ -11,7 +11,7 @@ import { URL } from "node:url";
 
 import { defaultProvider as credentialProvider } from "@aws-sdk/credential-provider-node";
 import { Hash } from "@aws-sdk/hash-node";
-import { HttpRequest, } from "@aws-sdk/protocol-http";
+import { HttpRequest } from "@aws-sdk/protocol-http";
 import { SignatureV4 } from "@aws-sdk/signature-v4";
 import type { Hash as IHash, SourceData } from "@aws-sdk/types";
 import AWSXray from "aws-xray-sdk-core";
@@ -201,7 +201,7 @@ export async function graphQlClient<T = unknown, V = unknown>({
       },
     );
     httpRequest.once("timeout", () => {
-      console.log('Timeout!')
+      console.log("Timeout!");
       httpRequest.destroy(
         new TimeoutError(
           `Operation timed out after ${timeoutMs} milliseconds`,
