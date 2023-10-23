@@ -40,12 +40,12 @@ jspm_packages/
 !/.github/workflows/upgrade-main.yml
 !/.github/pull_request_template.md
 !/.prettierignore
-!/.prettierrc.json
+!/.prettierrc.yml
 !/.npmrc
 !/tsconfig.json
 !/src/
 /lib
 /dist/
-!/.eslintrc.json
+!/.eslintrc.yml
 !/.vscode/extensions.json
 !/.vscode/settings.json
