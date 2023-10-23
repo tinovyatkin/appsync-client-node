@@ -108,7 +108,7 @@
       "description": "Runs eslint against the codebase",
       "steps": [
         {
-          "exec": "eslint --ext .ts,.tsx --fix --no-error-on-unmatched-pattern src src build-tools projenrc .projenrc.ts"
+          "exec": "eslint --ext .ts --fix --no-error-on-unmatched-pattern src  projenrc .projenrc.ts"
         }
       ]
     },
@@ -247,13 +247,13 @@
           "exec": "npm update npm-check-updates"
         },
         {
-          "exec": "npm-check-updates --upgrade --target=minor --peer --dep=dev,peer,prod,optional --filter=@aws-amplify/amplify-appsync-simulator,@types/jest,@types/node,@typescript-eslint/eslint-plugin,@typescript-eslint/parser,eslint-config-prettier,eslint-import-resolver-node,eslint-import-resolver-typescript,eslint-plugin-import,eslint-plugin-prettier,eslint,jest,npm-check-updates,prettier,prettier-plugin-organize-attributes,prettier-plugin-organize-imports,projen,standard-version,ts-jest,ts-node,typescript,@aws-sdk/credential-provider-node,@aws-sdk/hash-node,@aws-sdk/protocol-http,@aws-sdk/signature-v4,@aws-sdk/types,aws-xray-sdk-core"
+          "exec": "npm-check-updates --upgrade --target=minor --peer --dep=dev,peer,prod,optional --filter=@aws-amplify/amplify-appsync-simulator,@types/jest,@types/node,@typescript-eslint/eslint-plugin,@typescript-eslint/parser,eslint-config-prettier,eslint-import-resolver-node,eslint-import-resolver-typescript,eslint-plugin-import,eslint-plugin-prettier,eslint,graphql,jest,npm-check-updates,prettier,prettier-plugin-organize-attributes,prettier-plugin-organize-imports,projen,standard-version,ts-jest,ts-node,@aws-sdk/credential-provider-node,@aws-sdk/hash-node,@aws-sdk/protocol-http,@aws-sdk/signature-v4,@aws-sdk/types,aws-xray-sdk-core"
         },
         {
           "exec": "npm install"
         },
         {
-          "exec": "npm update @aws-amplify/amplify-appsync-simulator @types/jest @types/node @typescript-eslint/eslint-plugin @typescript-eslint/parser eslint-config-prettier eslint-import-resolver-node eslint-import-resolver-typescript eslint-plugin-import eslint-plugin-prettier eslint jest npm-check-updates prettier prettier-plugin-organize-attributes prettier-plugin-organize-imports projen standard-version ts-jest ts-node typescript @aws-sdk/credential-provider-node @aws-sdk/hash-node @aws-sdk/protocol-http @aws-sdk/signature-v4 @aws-sdk/types aws-xray-sdk-core"
+          "exec": "npm update @aws-amplify/amplify-appsync-simulator @types/jest @types/node @typescript-eslint/eslint-plugin @typescript-eslint/parser eslint-config-prettier eslint-import-resolver-node eslint-import-resolver-typescript eslint-plugin-import eslint-plugin-prettier eslint graphql jest npm-check-updates prettier prettier-plugin-organize-attributes prettier-plugin-organize-imports projen standard-version ts-jest ts-node @aws-sdk/credential-provider-node @aws-sdk/hash-node @aws-sdk/protocol-http @aws-sdk/signature-v4 @aws-sdk/types aws-xray-sdk-core"
         },
         {
           "exec": "npx projen"

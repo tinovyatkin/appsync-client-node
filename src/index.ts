@@ -51,7 +51,10 @@ class Sha256 implements IHash {
 
 export class TimeoutError extends Error {
   readonly name = "TimeoutError";
-  constructor(message: string, readonly request: GraphQlRequest<any>) {
+  constructor(
+    message: string,
+    readonly request: GraphQlRequest<any>,
+  ) {
     super(message);
     Object.setPrototypeOf(this, TimeoutError.prototype);
   }
@@ -131,9 +134,9 @@ export async function graphQlClient<T = unknown, V = unknown>({
   timeoutMs?: number;
   signal?: AbortSignal;
 }): Promise<
-  | Pick<IncomingMessage, "statusCode"> & {
-      body: string | { data: T; errors?: readonly GraphQLError[] };
-    }
+  Pick<IncomingMessage, "statusCode"> & {
+    body: string | { data: T; errors?: readonly GraphQLError[] };
+  }
 > {
   if (!region)
     throw new ReferenceError(`region is required, but wasn't provided`);
@@ -192,17 +195,18 @@ export async function graphQlClient<T = unknown, V = unknown>({
                 .includes("application/json")
                 ? JSON.parse(data)
                 : data,
-            })
+            }),
           )
           .once("error", (err) => reject(err));
-      }
+      },
     );
     httpRequest.once("timeout", () => {
+      console.log("Timeout!");
       httpRequest.destroy(
         new TimeoutError(
           `Operation timed out after ${timeoutMs} milliseconds`,
-          request
-        )
+          request,
+        ),
       );
     });
     httpRequest.once("error", async (err: NodeJS.ErrnoException) => {
@@ -216,7 +220,7 @@ export async function graphQlClient<T = unknown, V = unknown>({
             request,
             region,
             maxRetries: maxRetries - 1,
-          })
+          }),
         );
       }
       reject(err);
@@ -228,11 +232,11 @@ export async function graphQlClient<T = unknown, V = unknown>({
 /** A wrapper for graphqlClient that throws error when there are errors */
 export async function appSyncClient<ReturnValueType, VariableType>(
   request: GraphQlRequest<VariableType>,
-  appsyncUrl = process.env[GRAPHQL_API_ENDPOINT_ENV_NAME]
+  appsyncUrl = process.env[GRAPHQL_API_ENDPOINT_ENV_NAME],
 ): Promise<ReturnValueType> {
   if (!appsyncUrl)
     throw new Error(
-      `appsyncUrl should be provided either as parameter or via ${GRAPHQL_API_ENDPOINT_ENV_NAME}, but wasn't found`
+      `appsyncUrl should be provided either as parameter or via ${GRAPHQL_API_ENDPOINT_ENV_NAME}, but wasn't found`,
     );
   const result = await graphQlClient<ReturnValueType, VariableType>({
     request,
@@ -243,10 +247,10 @@ export async function appSyncClient<ReturnValueType, VariableType>(
     throw new Error(`Request to GraphQL failed: ${result.body}`);
   } else if (result.body.errors?.length) {
     console.error(
-      `GraphQL request errors: ${JSON.stringify(result.body.errors)}`
+      `GraphQL request errors: ${JSON.stringify(result.body.errors)}`,
     );
     throw new Error(
-      `GraphQL request errors: ${JSON.stringify(result.body.errors)}`
+      `GraphQL request errors: ${JSON.stringify(result.body.errors)}`,
     );
   }
 

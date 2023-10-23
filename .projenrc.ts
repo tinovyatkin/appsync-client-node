@@ -1,5 +1,5 @@
 import * as path from "path";
-import { javascript, JsonPatch, typescript } from "projen";
+import { javascript, JsonPatch, ProjenrcFile, typescript } from "projen";
 import { NpmAccess } from "projen/lib/javascript";
 
 const outDir = "lib";
@@ -17,6 +17,7 @@ const project = new typescript.TypeScriptProject({
   packageManager: javascript.NodePackageManager.NPM,
   projenrcTs: true,
   minNodeVersion: "16.15.0",
+  typescriptVersion: "~5.2.2",
   entrypoint: path.join(outDir, "index.cjs"),
   entrypointTypes: path.join(outDir, "index.d.ts"),
   defaultReleaseBranch: "main",
@@ -44,9 +45,11 @@ const project = new typescript.TypeScriptProject({
   codeCovTokenSecret: "CODECOV_TOKEN",
   testdir: "src",
   prettier: true,
-  disableTsconfig: true,
-  tsconfigDevFile: "tsconfig.json",
-  tsconfigDev: {
+  prettierOptions: {
+    yaml: true,
+  },
+  disableTsconfigDev: true,
+  tsconfig: {
     compilerOptions: {
       moduleResolution: javascript.TypeScriptModuleResolution.NODE,
       target: "es2022",
@@ -72,26 +75,35 @@ const project = new typescript.TypeScriptProject({
   ],
   devDeps: [
     "@aws-amplify/amplify-appsync-simulator",
+    "graphql",
     "prettier-plugin-organize-imports",
     "prettier-plugin-organize-attributes",
   ],
+  eslintOptions: {
+    dirs: ["src"],
+    devdirs: [""],
+    fileExtensions: [".ts"],
+    lintProjenRcFile: "",
+    lintProjenRc: false,
+    yaml: true,
+  },
 });
-project.tsconfigDev.file.patch(
+project.package.addPackageResolutions("graphql@$graphql");
+project.tsconfig?.file.patch(
   JsonPatch.add("/ts-node", {
     esm: true,
     preferTsExts: true,
     transpileOnly: true,
     experimentalSpecifierResolution: "node",
-  })
+  }),
 );
-project.tsconfigDev.file.patch(JsonPatch.replace("/include", [project.srcdir]));
+project.tsconfig?.file.patch(JsonPatch.replace("/include", [project.srcdir]));
 project.eslint?.addRules({
   "import/order": "off",
-  "@typescript-eslint/sort-type-union-intersection-members": "warn",
 });
 project.vscode?.extensions.addRecommendations(
   "dbaeumer.vscode-eslint",
-  "esbenp.prettier-vscode"
+  "esbenp.prettier-vscode",
 );
 project.vscode?.settings.addSettings(
   {
@@ -102,35 +114,36 @@ project.vscode?.settings.addSettings(
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.formatOnSave": true,
   },
-  "typescript"
+  "typescript",
 );
 
 project.eslint?.addIgnorePattern(path.join(outDir, "**"));
 project.eslint?.addIgnorePattern(path.join(project.testdir, "*.test.ts"));
-const eslintTask = project.tasks.tryFind("eslint")!;
-eslintTask?.reset(
-  `eslint --report-unused-disable-directives --color --cache --ext .ts ${project.srcdir}`
-);
+project.eslint?.addOverride({
+  files: [ProjenrcFile.of(project)!.filePath],
+  extends: ["plugin:@typescript-eslint/disable-type-checked"],
+});
 project.package.addField("files", [outDir]);
 
 project.preCompileTask.reset();
-project.preCompileTask.spawn(eslintTask);
+project.preCompileTask.spawn(project.eslint!.eslintTask);
 project.preCompileTask.exec(`rm -rf ${outDir}`);
 project.postCompileTask.reset(
-  `mv ${path.join(outDir, "index.js")}  ${path.join(outDir, "index.mjs")}`
+  `mv ${path.join(outDir, "index.js")}  ${path.join(outDir, "index.mjs")}`,
 );
 project.postCompileTask.exec("tsc --module commonjs");
 project.postCompileTask.exec(
-  `mv ${path.join(outDir, "index.js")}  ${path.join(outDir, "index.cjs")}`
+  `mv ${path.join(outDir, "index.js")}  ${path.join(outDir, "index.cjs")}`,
 );
 
 project.package.addField("type", "module");
 project.defaultTask?.reset(
-  `node --enable-source-maps --no-warnings --loader=ts-node/esm .projenrc.ts`
+  `node --enable-source-maps --no-warnings --loader=ts-node/esm .projenrc.ts`,
 );
 project.package.addField("exports", {
   import: `./${path.join(outDir, "index.mjs")}`,
   require: `./${path.join(outDir, "index.cjs")}`,
+  types: `./${path.join(outDir, "index.d.ts")}`,
 });
 
 project.jest!.config.preset = "ts-jest/presets/default-esm";
@@ -138,7 +151,7 @@ delete project.jest?.config.globals;
 project.testTask.reset("jest", { receiveArgs: true });
 project.testTask.env(
   "NODE_OPTIONS",
-  "--experimental-vm-modules --enable-source-maps --no-warnings"
+  "--experimental-vm-modules --enable-source-maps --no-warnings",
 );
 
 project.synth();
