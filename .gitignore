@@ -41,7 +41,6 @@ jspm_packages/
 !/.github/pull_request_template.md
 !/.prettierignore
 !/.prettierrc.yml
-!/.npmrc
 !/tsconfig.json
 !/src/
 /lib
