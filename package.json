@@ -45,7 +45,7 @@
     "graphql": "^15.8.0",
     "jest": "^29.7.0",
     "npm-check-updates": "^16",
-    "prettier": "^3.0.3",
+    "prettier": "^3.1.0",
     "prettier-plugin-organize-attributes": "^1.0.0",
     "prettier-plugin-organize-imports": "^3.2.4",
     "projen": "^0.76.27",
@@ -55,7 +55,7 @@
     "typescript": "~5.2.2"
   },
   "dependencies": {
-    "@aws-sdk/credential-provider-node": "^3.449.0",
+    "@aws-sdk/credential-provider-node": "^3.450.0",
     "@aws-sdk/hash-node": "^3.370.0",
     "@aws-sdk/protocol-http": "^3.370.0",
     "@aws-sdk/signature-v4": "^3.370.0",
