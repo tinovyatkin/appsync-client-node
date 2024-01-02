@@ -108,7 +108,8 @@
       "description": "Runs eslint against the codebase",
       "steps": [
         {
-          "exec": "eslint --ext .ts --fix --no-error-on-unmatched-pattern src  projenrc .projenrc.ts"
+          "exec": "eslint --ext .ts --fix --no-error-on-unmatched-pattern $@ src  projenrc .projenrc.ts",
+          "receiveArgs": true
         }
       ]
     },
