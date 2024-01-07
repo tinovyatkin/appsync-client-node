@@ -30,7 +30,6 @@ jspm_packages/
 *.tgz
 .yarn-integrity
 .cache
-!/.projenrc.js
 /coverage/
 !/.github/workflows/build.yml
 /dist/changelog.md
@@ -48,3 +47,4 @@ jspm_packages/
 !/.eslintrc.yml
 !/.vscode/extensions.json
 !/.vscode/settings.json
+!/.projenrc.ts
