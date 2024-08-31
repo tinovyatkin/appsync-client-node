@@ -49,7 +49,7 @@ rules:
   import/no-unresolved:
     - error
   import/order: off
-  no-duplicate-imports:
+  import/no-duplicates:
     - error
   no-shadow:
     - off
