@@ -10,7 +10,7 @@
     "inlineSourceMap": true,
     "inlineSources": false,
     "lib": [
-      "es2022"
+      "es2024"
     ],
     "module": "es2022",
     "noEmitOnError": false,
@@ -25,8 +25,12 @@
     "strictNullChecks": true,
     "strictPropertyInitialization": true,
     "stripInternal": true,
-    "target": "es2022",
-    "moduleResolution": "node"
+    "target": "es2024",
+    "types": [
+      "jest",
+      "node"
+    ],
+    "moduleResolution": "bundler"
   },
   "include": [
     "src"

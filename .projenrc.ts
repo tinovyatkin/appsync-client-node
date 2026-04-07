@@ -11,13 +11,14 @@ const project = new typescript.TypeScriptProject({
     "Lightweight AWS AppSync client optimized for Lambda Node.js Runtime",
   authorName: "Konstantin Vyatkin",
   authorEmail: "tino@vtkn.io",
-  majorVersion: 1,
+  majorVersion: 2,
   license: "MIT",
   repository: "https://github.com/tinovyatkin/appsync-client-node.git",
   packageManager: javascript.NodePackageManager.NPM,
   projenrcTs: true,
-  minNodeVersion: "16.15.0",
-  typescriptVersion: "~5.2.2",
+  minNodeVersion: "20.9.0",
+  workflowNodeVersion: "lts/*",
+  typescriptVersion: "~6.0",
   entrypoint: path.join(outDir, "index.cjs"),
   entrypointTypes: path.join(outDir, "index.d.ts"),
   defaultReleaseBranch: "main",
@@ -37,6 +38,7 @@ const project = new typescript.TypeScriptProject({
   jest: true,
   jestOptions: {
     junitReporting: false,
+    jestVersion: "^30",
     jestConfig: {
       coverageProvider: "v8",
     },
@@ -51,9 +53,9 @@ const project = new typescript.TypeScriptProject({
   disableTsconfigDev: true,
   tsconfig: {
     compilerOptions: {
-      moduleResolution: javascript.TypeScriptModuleResolution.NODE,
-      target: "es2022",
-      lib: ["es2022"],
+      moduleResolution: javascript.TypeScriptModuleResolution.BUNDLER,
+      target: "es2024",
+      lib: ["es2024"],
       rootDir: "src",
       module: "es2022",
       outDir,
@@ -67,16 +69,18 @@ const project = new typescript.TypeScriptProject({
   },
   deps: [
     "@aws-sdk/credential-provider-node",
-    "@aws-sdk/hash-node",
-    "@aws-sdk/protocol-http",
-    "@aws-sdk/signature-v4",
-    "@aws-sdk/types",
+    "@smithy/hash-node",
+    "@smithy/protocol-http",
+    "@smithy/signature-v4",
+    "@smithy/types",
     "aws-xray-sdk-core",
   ],
   devDeps: [
-    "@aws-amplify/amplify-appsync-simulator",
+    "@aws-amplify/amplify-appsync-simulator@^2.16.18",
+    "@swc/core",
+    "@swc/jest",
     "graphql",
-    "prettier-plugin-organize-imports",
+    "prettier-plugin-organize-imports@^4",
     "prettier-plugin-organize-attributes",
   ],
   eslintOptions: {
@@ -146,7 +150,19 @@ project.package.addField("exports", {
   types: `./${path.join(outDir, "index.d.ts")}`,
 });
 
-project.jest!.config.preset = "ts-jest/presets/default-esm";
+project.jest!.config.extensionsToTreatAsEsm = [".ts", ".tsx", ".mts"];
+project.jest!.config.transform = {
+  "^.+\\.m?tsx?$": [
+    "@swc/jest",
+    {
+      jsc: {
+        parser: { syntax: "typescript" },
+        target: "es2024",
+      },
+      module: { type: "es6" },
+    },
+  ],
+};
 delete project.jest?.config.globals;
 project.testTask.reset("jest", { receiveArgs: true });
 project.testTask.env(
