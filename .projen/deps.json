@@ -2,25 +2,40 @@
   "dependencies": [
     {
       "name": "@aws-amplify/amplify-appsync-simulator",
+      "version": "^2.16.18",
+      "type": "build"
+    },
+    {
+      "name": "@swc/core",
+      "type": "build"
+    },
+    {
+      "name": "@swc/jest",
       "type": "build"
     },
     {
       "name": "@types/jest",
+      "version": "^30",
       "type": "build"
     },
     {
       "name": "@types/node",
-      "version": "^16",
+      "version": "^20",
       "type": "build"
     },
     {
       "name": "@typescript-eslint/eslint-plugin",
-      "version": "^6",
+      "version": "^8",
       "type": "build"
     },
     {
       "name": "@typescript-eslint/parser",
-      "version": "^6",
+      "version": "^8",
+      "type": "build"
+    },
+    {
+      "name": "commit-and-tag-version",
+      "version": "^12",
       "type": "build"
     },
     {
@@ -46,7 +61,7 @@
     },
     {
       "name": "eslint",
-      "version": "^8",
+      "version": "^9",
       "type": "build"
     },
     {
@@ -55,6 +70,7 @@
     },
     {
       "name": "jest",
+      "version": "^30",
       "type": "build"
     },
     {
@@ -67,6 +83,7 @@
     },
     {
       "name": "prettier-plugin-organize-imports",
+      "version": "^4",
       "type": "build"
     },
     {
@@ -74,12 +91,8 @@
       "type": "build"
     },
     {
-      "name": "standard-version",
-      "version": "^9",
-      "type": "build"
-    },
-    {
       "name": "ts-jest",
+      "version": "^29",
       "type": "build"
     },
     {
@@ -88,7 +101,7 @@
     },
     {
       "name": "typescript",
-      "version": "~5.2.2",
+      "version": "~6.0",
       "type": "build"
     },
     {
@@ -101,19 +114,19 @@
       "type": "runtime"
     },
     {
-      "name": "@aws-sdk/hash-node",
+      "name": "@smithy/hash-node",
       "type": "runtime"
     },
     {
-      "name": "@aws-sdk/protocol-http",
+      "name": "@smithy/protocol-http",
       "type": "runtime"
     },
     {
-      "name": "@aws-sdk/signature-v4",
+      "name": "@smithy/signature-v4",
       "type": "runtime"
     },
     {
-      "name": "@aws-sdk/types",
+      "name": "@smithy/types",
       "type": "runtime"
     },
     {

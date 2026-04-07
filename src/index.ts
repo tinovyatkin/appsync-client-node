@@ -10,10 +10,10 @@ import { setTimeout } from "node:timers/promises";
 import { URL } from "node:url";
 
 import { defaultProvider as credentialProvider } from "@aws-sdk/credential-provider-node";
-import { Hash } from "@aws-sdk/hash-node";
-import { HttpRequest } from "@aws-sdk/protocol-http";
-import { SignatureV4 } from "@aws-sdk/signature-v4";
-import type { Hash as IHash, SourceData } from "@aws-sdk/types";
+import { Hash } from "@smithy/hash-node";
+import { HttpRequest } from "@smithy/protocol-http";
+import { SignatureV4 } from "@smithy/signature-v4";
+import type { Hash as IHash, SourceData } from "@smithy/types";
 import AWSXray from "aws-xray-sdk-core";
 
 export const GRAPHQL_API_ENDPOINT_ENV_NAME = "GRAPHQL_API_ENDPOINT";
@@ -82,8 +82,9 @@ export const gql = (
  */
 const APPSYNC_MAX_QUERY_RUNTIME_MS = 30 * 1000;
 
-if (!process.env.AWS_XRAY_CONTEXT_MISSING)
+if (!process.env.AWS_XRAY_CONTEXT_MISSING) {
   AWSXray.setContextMissingStrategy("IGNORE_ERROR");
+}
 
 /**
  * Don't capture if OpenTelemetry auto-instrumentation is enabled
@@ -138,8 +139,9 @@ export async function graphQlClient<T = unknown, V = unknown>({
     body: string | { data: T; errors?: readonly GraphQLError[] };
   }
 > {
-  if (!region)
+  if (!region) {
     throw new ReferenceError(`region is required, but wasn't provided`);
+  }
 
   const url = new URL(appsyncUrl);
   const [h, agent, port] =
@@ -234,10 +236,11 @@ export async function appSyncClient<ReturnValueType, VariableType>(
   request: GraphQlRequest<VariableType>,
   appsyncUrl = process.env[GRAPHQL_API_ENDPOINT_ENV_NAME],
 ): Promise<ReturnValueType> {
-  if (!appsyncUrl)
+  if (!appsyncUrl) {
     throw new Error(
       `appsyncUrl should be provided either as parameter or via ${GRAPHQL_API_ENDPOINT_ENV_NAME}, but wasn't found`,
     );
+  }
   const result = await graphQlClient<ReturnValueType, VariableType>({
     request,
     appsyncUrl,

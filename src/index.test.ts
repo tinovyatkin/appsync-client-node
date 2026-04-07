@@ -26,6 +26,7 @@ import {
 
 describe("appsync-client-node", () => {
   // these are always set on lambdas
+  delete process.env.AWS_PROFILE;
   process.env.AWS_REGION = "eu-west-1";
   process.env.AWS_ACCESS_KEY_ID = "test-user-key";
   process.env.AWS_SECRET_ACCESS_KEY = randomBytes(10).toString("hex");
@@ -194,7 +195,7 @@ describe("appsync-client-node errors handling", () => {
   process.env.AWS_ACCESS_KEY_ID = "test-user-key";
   process.env.AWS_SECRET_ACCESS_KEY = randomBytes(10).toString("hex");
 
-  test.skip("Should emit TimeoutError on timeout", async () => {
+  test("Should emit TimeoutError on timeout", async () => {
     const server = createServer(async (req, res) => {
       if (req.method === "POST" && req.url === "/graphql") {
         // delay response for 1200 ms
@@ -223,6 +224,8 @@ describe("appsync-client-node errors handling", () => {
           `,
         },
         timeoutMs: 1000,
+        // pass a non-aborting signal so the socket timeout fires (not the AbortSignal)
+        signal: new AbortController().signal,
       })
     ).rejects.toBeInstanceOf(TimeoutError);
 
@@ -265,7 +268,7 @@ describe("appsync-client-node errors handling", () => {
         maxRetries: 3,
       })
     ).resolves.toEqual({ body: { data: [] }, statusCode: 200 });
-    expect(serverHandler).toBeCalledTimes(3);
+    expect(serverHandler).toHaveBeenCalledTimes(3);
 
     server.removeAllListeners();
     server.close();
